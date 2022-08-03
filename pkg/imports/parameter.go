@@ -46,13 +46,27 @@ func (this *Imports) getRequest(task model.CamundaExternalTask) (result Instance
 	if !ok {
 		return result, errors.New("missing value in " + variableName)
 	}
-	criteriaStr, ok := variable.Value.(string)
+	str, ok := variable.Value.(string)
 	if !ok {
 		return result, errors.New("missing value in " + variableName)
 	}
-	err = json.Unmarshal([]byte(criteriaStr), &result)
+	err = json.Unmarshal([]byte(str), &result)
 	if err != nil {
 		return result, fmt.Errorf("unable to interpret import request (%v): %w", variableName, err)
+	}
+	for i, config := range result.Configs {
+		key := this.config.WorkerParamPrefix + "config.json_overwrite." + config.Name
+		configVariable, configExists := task.Variables[key]
+		if configExists {
+			configStr, configIsString := configVariable.Value.(string)
+			if configIsString {
+				err = json.Unmarshal([]byte(configStr), &config.Value)
+				if err != nil {
+					return result, fmt.Errorf("unable to interpret import config overwriter (%v %v): %w", variableName, config.Name, err)
+				}
+				result.Configs[i] = config
+			}
+		}
 	}
 	return result, err
 }

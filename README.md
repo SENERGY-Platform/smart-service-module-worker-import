@@ -20,3 +20,10 @@
 - Variable-Name-Template: `{{config.WorkerParamPrefix}}.request`
 - Variable-Name-Example: `import.request`
 - Value: json.Marshal(Instance{})
+
+### Config Overwrite
+
+- Desc: overwrites config value with json value. useful to set camunda placeholder as value of integer config.
+- Variable-Name-Template: `{{config.WorkerParamPrefix}}.config.json_overwrite.{{request.config.name}}`
+- Variable-Name-Example: `import.config.json_overwrite.foo`
+- Value: json.Marshal(interface{})
