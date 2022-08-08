@@ -58,13 +58,36 @@ func (this *Imports) getRequest(task model.CamundaExternalTask) (result Instance
 		key := this.config.WorkerParamPrefix + "config.json_overwrite." + config.Name
 		configVariable, configExists := task.Variables[key]
 		if configExists {
-			configStr, configIsString := configVariable.Value.(string)
-			if configIsString {
-				err = json.Unmarshal([]byte(configStr), &config.Value)
+			switch v := configVariable.Value.(type) {
+			case string:
+				err = json.Unmarshal([]byte(v), &config.Value)
 				if err != nil {
-					return result, fmt.Errorf("unable to interpret import config overwriter (%v %v): %w", variableName, config.Name, err)
+					config.Value = v
 				}
 				result.Configs[i] = config
+			case float64:
+				config.Value = v
+				result.Configs[i] = config
+			case float32:
+				config.Value = v
+				result.Configs[i] = config
+			case int:
+				config.Value = v
+				result.Configs[i] = config
+			case int32:
+				config.Value = v
+				result.Configs[i] = config
+			case int64:
+				config.Value = v
+				result.Configs[i] = config
+			case bool:
+				config.Value = v
+				result.Configs[i] = config
+			case map[string]interface{}:
+				config.Value = v["value"]
+				result.Configs[i] = config
+			default:
+				return result, fmt.Errorf("unable to interpret import config overwriter %v %v (%v):\n %w", variableName, config.Name, v, err)
 			}
 		}
 	}
