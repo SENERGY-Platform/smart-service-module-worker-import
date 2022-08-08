@@ -60,10 +60,15 @@ func (this *Imports) getRequest(task model.CamundaExternalTask) (result Instance
 		if configExists {
 			configStr, configIsString := configVariable.Value.(string)
 			if configIsString {
-				err = json.Unmarshal([]byte(configStr), &config.Value)
-				if err != nil {
-					return result, fmt.Errorf("unable to interpret import config overwriter (%v %v): %w", variableName, config.Name, err)
+				if configStr != "" {
+					err = json.Unmarshal([]byte(configStr), &config.Value)
+					if err != nil {
+						config.Value = configStr
+					}
+					result.Configs[i] = config
 				}
+			} else {
+				config.Value = configVariable
 				result.Configs[i] = config
 			}
 		}
