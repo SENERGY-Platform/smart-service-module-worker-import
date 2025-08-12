@@ -18,14 +18,14 @@ package imports
 
 import (
 	"fmt"
-	"github.com/SENERGY-Platform/smart-service-module-worker-lib/pkg/auth"
-	"github.com/SENERGY-Platform/smart-service-module-worker-lib/pkg/configuration"
-	"github.com/SENERGY-Platform/smart-service-module-worker-lib/pkg/model"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"runtime/debug"
+
+	"github.com/SENERGY-Platform/smart-service-module-worker-lib/pkg/auth"
+	"github.com/SENERGY-Platform/smart-service-module-worker-lib/pkg/configuration"
+	"github.com/SENERGY-Platform/smart-service-module-worker-lib/pkg/model"
 )
 
 func New(config Config, libConfig configuration.Config, auth *auth.Auth, smartServiceRepo SmartServiceRepo) *Imports {
@@ -46,12 +46,12 @@ type SmartServiceRepo interface {
 func (this *Imports) Do(task model.CamundaExternalTask) (modules []model.Module, outputs map[string]interface{}, err error) {
 	userId, err := this.smartServiceRepo.GetInstanceUser(task.ProcessInstanceId)
 	if err != nil {
-		log.Println("ERROR: unable to get instance user", err)
+		this.libConfig.GetLogger().Error("ERROR: unable to get instance user", "error", err)
 		return modules, outputs, err
 	}
 	token, err := this.auth.ExchangeUserToken(userId)
 	if err != nil {
-		log.Println("ERROR: unable to exchange user token", err)
+		this.libConfig.GetLogger().Error("ERROR: unable to exchange user token", "error", err)
 		return modules, outputs, err
 	}
 
@@ -78,13 +78,12 @@ func (this *Imports) Do(task model.CamundaExternalTask) (modules []model.Module,
 }
 
 func (this *Imports) Undo(modules []model.Module, reason error) {
-	log.Println("UNDO:", reason)
+	this.libConfig.GetLogger().Debug("undo", "reason", reason)
 	for _, module := range modules {
 		if module.DeleteInfo != nil {
 			err := this.useModuleDeleteInfo(*module.DeleteInfo)
 			if err != nil {
-				log.Println("ERROR:", err)
-				debug.PrintStack()
+				this.libConfig.GetLogger().Error("ERROR: unable to use module delete info", "error", err, "stack", string(debug.Stack()))
 			}
 		}
 	}
@@ -110,8 +109,7 @@ func (this *Imports) useModuleDeleteInfo(info model.ModuleDeleteInfo) error {
 	if resp.StatusCode >= 300 && resp.StatusCode != http.StatusNotFound {
 		temp, _ := io.ReadAll(resp.Body)
 		err = fmt.Errorf("unexpected response: %v, %v", resp.StatusCode, string(temp))
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.libConfig.GetLogger().Error("error in useModuleDeleteInfo", "error", err, "stack", string(debug.Stack()))
 		return err
 	}
 	_, _ = io.ReadAll(resp.Body)

@@ -20,11 +20,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/SENERGY-Platform/smart-service-module-worker-lib/pkg/auth"
-	"log"
 	"net/http"
 	"runtime/debug"
 	"time"
+
+	"github.com/SENERGY-Platform/smart-service-module-worker-lib/pkg/auth"
 )
 
 func (this *Imports) send(token auth.Token, request Instance) (result Instance, err error) {
@@ -32,9 +32,7 @@ func (this *Imports) send(token auth.Token, request Instance) (result Instance, 
 	if err != nil {
 		return result, err
 	}
-	if this.config.Debug {
-		log.Println("DEBUG: send import request", string(body))
-	}
+	this.libConfig.GetLogger().Debug("send import request", "request", string(body))
 	client := http.Client{
 		Timeout: 5 * time.Second,
 	}
@@ -49,9 +47,7 @@ func (this *Imports) send(token auth.Token, request Instance) (result Instance, 
 	}
 	req.Header.Set("Authorization", token.Jwt())
 	req.Header.Set("X-UserId", token.GetUserId())
-	if this.config.Debug {
-		log.Println("DEBUG: send import request with token:", req.Header.Get("Authorization"))
-	}
+	this.libConfig.GetLogger().Debug("send import request with token", "request", string(body), "token", req.Header.Get("Authorization"))
 	resp, err := client.Do(req)
 	if err != nil {
 		debug.PrintStack()
