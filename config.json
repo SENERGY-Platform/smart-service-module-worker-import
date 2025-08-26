@@ -6,7 +6,7 @@
 
     "camunda_worker_id": "import",
     "camunda_worker_topic": "import",
-    "camunda_lock_duration_in_ms": 60000,
+    "camunda_lock_duration_in_ms": 300000,
     "camunda_worker_wait_duration_in_ms": 1000,
     "camunda_fetch_max_tasks": 100,
 

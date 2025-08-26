@@ -34,7 +34,7 @@ func (this *Imports) send(token auth.Token, request Instance) (result Instance, 
 	}
 	this.libConfig.GetLogger().Debug("send import request", "request", string(body))
 	client := http.Client{
-		Timeout: 5 * time.Second,
+		Timeout: 5 * time.Minute,
 	}
 	req, err := http.NewRequest(
 		"POST",
