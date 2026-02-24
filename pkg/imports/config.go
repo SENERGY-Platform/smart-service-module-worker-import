@@ -20,4 +20,6 @@ type Config struct {
 	ImportDeployUrl   string `json:"import_deploy_url"`
 	WorkerParamPrefix string `json:"worker_param_prefix"`
 	Debug             bool   `json:"debug"`
+
+	HealthCheckInterval string `json:"health_check_interval"`
 }

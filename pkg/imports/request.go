@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"net/url"
 	"runtime/debug"
 	"time"
 
@@ -61,4 +62,33 @@ func (this *Imports) send(token auth.Token, request Instance) (result Instance, 
 	}
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	return result, err
+}
+
+var DefaultTimeout = 30 * time.Second
+
+func (this *Imports) CheckImport(token auth.Token, id string) (int, error) {
+	client := http.Client{
+		Timeout: DefaultTimeout,
+	}
+	req, err := http.NewRequest(
+		"GET",
+		this.config.ImportDeployUrl+"/instances/"+url.PathEscape(id),
+		nil,
+	)
+	if err != nil {
+		this.libConfig.GetLogger().Error("error in CheckImport", "error", err, "stack", string(debug.Stack()))
+		return 0, err
+	}
+	req.Header.Set("Authorization", token.Jwt())
+	req.Header.Set("X-UserId", token.GetUserId())
+
+	this.libConfig.GetLogger().Debug("check import request", "url", req.URL.String(), "method", req.Method, "token", req.Header.Get("Authorization"), "xuser", req.Header.Get("X-UserId"))
+
+	resp, err := client.Do(req)
+	if err != nil {
+		this.libConfig.GetLogger().Error("error in CheckImport", "error", err, "stack", string(debug.Stack()))
+		return 0, err
+	}
+	resp.Body.Close()
+	return resp.StatusCode, nil
 }
